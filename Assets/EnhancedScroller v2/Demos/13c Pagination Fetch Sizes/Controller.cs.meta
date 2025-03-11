@@ -14,11 +14,13 @@ labels:
 - Scroller
 - UI
 - Virtualize
-timeCreated: 1446733497
-licenseType: Store
 MonoImporter:
+  externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - scroller: {instanceID: 0}
+  - cellViewPrefab: {fileID: 1736310140747489049, guid: b98eeaa1f3289c94a89dea60989d81cc, type: 3}
+  - loadingCellViewPrefab: {fileID: 2950854589721000220, guid: 2f03be928d3cbfe40843a5d4a4f61bb4, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

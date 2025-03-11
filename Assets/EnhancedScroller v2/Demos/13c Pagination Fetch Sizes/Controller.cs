@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using EnhancedUI;
 using EnhancedUI.EnhancedScroller;
 
@@ -12,7 +13,33 @@ namespace EnhancedScrollerDemos.PaginationFetchSizes
     /// </summary>
     public class Controller : MonoBehaviour, IEnhancedScrollerDelegate
     {
+        /// <summary>
+        /// Internal representation of our data. Note that the scroller will never see
+        /// this, so it separates the data from the layout using MVC principles.
+        /// </summary>
         private List<Data> _data;
+
+        /// <summary>
+        /// This is our scroller we will be a delegate for
+        /// </summary>
+        public EnhancedScroller scroller;
+
+        /// <summary>
+        /// This will be the prefab of each cell in our scroller. Note that you can use more
+        /// than one kind of cell, but this example just has the one type.
+        /// </summary>
+        public CellView cellViewPrefab;
+
+        /// <summary>
+        /// The number of elements per page
+        /// </summary>
+        public int pageCount;
+
+        /// <summary>
+        /// Used to determine if the scroller is already loading new data.
+        /// If so, then we don't want to call again to avoid an infinite loop.
+        /// </summary>
+        private bool _loadingNew;
 
         /// <summary>
         /// This member tells the scroller that we need
@@ -22,65 +49,101 @@ namespace EnhancedScrollerDemos.PaginationFetchSizes
         /// </summary>
         private bool _calculateLayout;
 
-        public EnhancedScroller scroller;
-        public EnhancedScrollerCellView cellViewPrefab;
-
         void Start()
         {
             scroller.Delegate = this;
-            LoadData();
-        }
-
-        /// <summary>
-        /// Populates the data with some random Lorum Ipsum text
-        /// </summary>
-        private void LoadData()
-        {
+            scroller.scrollerScrolled = ScrollerScrolled;
+            
+            // initialize the data
             _data = new List<Data>();
 
-            // populate the scroller with some text
-            for (var i = 0; i < 7; i++)
-            {
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 0).ToString() + " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam augue enim, scelerisque ac diam nec, efficitur aliquam orci. Vivamus laoreet, libero ut aliquet convallis, dolor elit auctor purus, eget dapibus elit libero at lacus. Aliquam imperdiet sem ultricies ultrices vestibulum. Proin feugiat et dui sit amet ultrices. Quisque porta lacus justo, non ornare nulla eleifend at. Nunc malesuada eget neque sit amet viverra. Donec et lectus ac lorem elementum porttitor. Praesent urna felis, dapibus eu nunc varius, varius tincidunt ante. Vestibulum vitae nulla malesuada, consequat justo eu, dapibus elit. Nulla tristique enim et convallis facilisis." });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 1).ToString() + " Nunc convallis, ipsum a porta viverra, tortor velit feugiat est, eget consectetur ex metus vel diam." });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 2).ToString() + " Phasellus laoreet vitae lectus sit amet venenatis. Duis scelerisque ultricies tincidunt. Cras ullamcorper lectus sed risus porttitor, id viverra urna venenatis. Maecenas in odio sed mi tempus porta et a justo. Nullam non ullamcorper est. Nam rhoncus nulla quis commodo aliquam. Maecenas pulvinar est sed ex iaculis, eu pretium tellus placerat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Praesent in ipsum faucibus, fringilla lectus id, congue est. " });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 3).ToString() + " Fusce ex lectus." });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 4).ToString() + " Fusce mollis elementum sem euismod malesuada. Aenean et convallis turpis. Suspendisse potenti." });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 5).ToString() + " Fusce nec sapien orci. Pellentesque mollis ligula vitae interdum imperdiet. Aenean ultricies velit at turpis luctus, nec lacinia ligula malesuada. Nulla facilisi. Donec at nisi lorem. Aenean vestibulum velit velit, sed eleifend dui sodales in. Nunc vulputate, nulla non facilisis hendrerit, neque dolor lacinia orci, et fermentum nunc quam vel purus. Donec gravida massa non ullamcorper consectetur. Sed pellentesque leo ac ornare egestas. " });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 6).ToString() + " Curabitur non dignissim turpis, vel viverra elit. Cras in sem rhoncus, gravida velit ut, consectetur erat. Proin ac aliquet nulla. Mauris quis augue nisi. Sed purus magna, mollis sed massa ac, scelerisque lobortis leo. Nullam at facilisis ex. Nullam ut accumsan orci. Integer vitae dictum felis, quis tristique sem. Suspendisse potenti. Curabitur bibendum eleifend eros at porta. Ut malesuada consectetur arcu nec lacinia. " });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 7).ToString() + " Pellentesque pulvinar ac arcu fermentum interdum. Pellentesque gravida faucibus ipsum at blandit. Vestibulum pharetra erat sit amet feugiat sodales. Nunc et dui viverra tellus efficitur egestas. Sed ex mauris, eleifend in nisi sed, consequat tincidunt elit. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Proin vel bibendum enim. Etiam feugiat nulla ac dui commodo, eget vehicula est scelerisque. In metus neque, congue a justo ac, consequat lacinia neque. Vivamus non velit vitae ex dictum pharetra. Aliquam blandit nisi eget libero feugiat porta. " });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 8).ToString() + " Proin bibendum ligula a pulvinar convallis. Mauris tincidunt tempor ipsum id viverra. Vivamus congue ipsum venenatis tellus semper, vel venenatis mauris finibus. Vivamus a nisl in lacus fermentum varius. Mauris bibendum magna placerat risus interdum, vitae facilisis nulla pellentesque. Curabitur vehicula odio quis magna pulvinar, et lacinia ante bibendum. Morbi laoreet eleifend ante, quis luctus augue luctus sit amet. Sed consectetur enim et orci posuere euismod. Curabitur sollicitudin metus eu nisl dictum suscipit. " });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 9).ToString() + " Sed gravida augue ligula, tempus auctor ante rutrum sit amet. Vestibulum finibus magna ut viverra rhoncus. Vestibulum rutrum eu nibh interdum imperdiet. Curabitur ac nunc a turpis ultricies dictum. Phasellus in molestie eros. Morbi porta imperdiet odio sed pharetra. Cras blandit tincidunt ultricies. " });
-                _data.Add(new Data() { cellSize = 0, someText = (i * 11 + 10).ToString() + " Integer pellentesque viverra orci, sollicitudin luctus dui rhoncus sed. Duis placerat at felis vel placerat. Mauris massa urna, scelerisque vitae posuere vitae, ultrices in nibh. Mauris posuere hendrerit viverra. In lacinia urna nibh, ut lobortis lectus finibus et. Aliquam arcu dolor, suscipit eget massa id, eleifend dapibus est. Quisque eget bibendum urna. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum pulvinar ornare. Aliquam venenatis eget nunc et euismod. " });
-            }
+            // load in the first page of data
+            LoadData(0);
+        }
 
-            ResizeScroller();
+        private string GetTxt(int index)
+        {
+            var txt = "";
+            if (index % 7 == 0)
+            {
+                txt =
+                    " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam augue enim, scelerisque ac diam nec, efficitur aliquam orci. Vivamus laoreet, libero ut aliquet convallis, dolor elit auctor purus, eget dapibus elit libero at lacus. Aliquam imperdiet sem ultricies ultrices vestibulum. Proin feugiat et dui sit amet ultrices. Quisque porta lacus justo, non ornare nulla eleifend at. Nunc malesuada eget neque sit amet viverra. Donec et lectus ac lorem elementum porttitor. Praesent urna felis, dapibus eu nunc varius, varius tincidunt ante. Vestibulum vitae nulla malesuada, consequat justo eu, dapibus elit. Nulla tristique enim et convallis facilisis.";
+            }else if (index % 7 == 1)
+            {
+                txt =
+                    " Nunc convallis, ipsum a porta viverra, tortor velit feugiat est, eget consectetur ex metus vel diam.";
+            }else if (index % 7 == 2)
+            {
+                txt =
+                    " Phasellus laoreet vitae lectus sit amet venenatis. Duis scelerisque ultricies tincidunt. Cras ullamcorper lectus sed risus porttitor, id viverra urna venenatis. Maecenas in odio sed mi tempus porta et a justo. Nullam non ullamcorper est. Nam rhoncus nulla quis commodo aliquam. Maecenas pulvinar est sed ex iaculis, eu pretium tellus placerat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Praesent in ipsum faucibus, fringilla lectus id, congue est. ";
+            }else if (index % 7 == 3)
+            {
+                txt = " Fusce ex lectus.";
+            }else if (index % 7 == 4)
+            {
+                txt = " Fusce mollis elementum sem euismod malesuada. Aenean et convallis turpis. Suspendisse potenti.";
+            }else if (index % 7 == 5)
+            {
+                txt =
+                    " Fusce nec sapien orci. Pellentesque mollis ligula vitae interdum imperdiet. Aenean ultricies velit at turpis luctus, nec lacinia ligula malesuada. Nulla facilisi. Donec at nisi lorem. Aenean vestibulum velit velit, sed eleifend dui sodales in. Nunc vulputate, nulla non facilisis hendrerit, neque dolor lacinia orci, et fermentum nunc quam vel purus. Donec gravida massa non ullamcorper consectetur. Sed pellentesque leo ac ornare egestas. ";
+            }else if (index % 7 == 6)
+            {
+                txt =
+                    " Curabitur non dignissim turpis, vel viverra elit. Cras in sem rhoncus, gravida velit ut, consectetur erat. Proin ac aliquet nulla. Mauris quis augue nisi. Sed purus magna, mollis sed massa ac, scelerisque lobortis leo. Nullam at facilisis ex. Nullam ut accumsan orci. Integer vitae dictum felis, quis tristique sem. Suspendisse potenti. Curabitur bibendum eleifend eros at porta. Ut malesuada consectetur arcu nec lacinia. ";
+            }
+            return txt;
         }
 
         /// <summary>
-        /// This function adds a new record, resizing the scroller and calculating the sizes of all cells
+        /// Populates the data with a lot of records
         /// </summary>
-        public void AddNewRow()
+        private void LoadData(int pageStartIndex)
         {
-            // first, clear out the cells in the scroller so the new text transforms will be reset
-            scroller.ClearAll();
+            // grab the last index of the data to jump to when we are finished
+            var previousLastIndex = _data.Count;
 
-            // reset the scroller's position so that it is not outside of the new bounds
-            scroller.ScrollPosition = 0;
+            // calculate the last index of the new list
+            var lastIndex = _data.Count + pageCount;
 
-            // second, reset the data's cell view sizes
-            foreach (var item in _data)
+            // **关键修改**: 插入数据到列表的前面
+            if (pageStartIndex == 0)
             {
-                item.cellSize = 0;
+                for (int i = lastIndex - 1; i >= pageStartIndex; i--)
+                {
+                    _data.Add(new Data() { cellSize = 0, someText = "Index:" + i.ToString() + GetTxt(i) });
+                }
+            }
+            else
+            {
+                scroller.ClearAll();
+                scroller.ScrollPosition = 0;
+                foreach (var item in _data)
+                {
+                    item.cellSize = 0;
+                }
+
+                for (int i = pageStartIndex; i <= lastIndex; i++)
+                {
+                    _data.Insert(0, new Data() { cellSize = 0, someText = "Index:" + i.ToString() + GetTxt(i) });
+                }
             }
 
-            // now we can add the data row
-            _data.Add(new Data() { cellSize = 0, someText = _data.Count.ToString() + " New Row Added!" });
-
+            // tell the scroller to reload now that we have the data.
+            //scroller.ReloadData();
             ResizeScroller();
 
-            // optional: jump to the end of the scroller to see the new content
-            scroller.JumpToDataIndex(_data.Count - 1, 1f, 1f);
+            // **关键修改**: 让Scroller维持原本的可见区域
+            if (pageStartIndex == 0)
+            {
+                scroller.JumpToDataIndex(pageCount - 1, 1f, 1f);
+            }
+            else
+            {
+                scroller.JumpToDataIndex(pageCount + 1, 1f, 1f);
+            }
+
+            // toggle off loading new so that we can load again at the bottom of the scroller
+            _loadingNew = false;
         }
 
         /// <summary>
@@ -127,15 +190,60 @@ namespace EnhancedScrollerDemos.PaginationFetchSizes
 
         public EnhancedScrollerCellView GetCellView(EnhancedScroller scroller, int dataIndex, int cellIndex)
         {
+            // first, we get a cell from the scroller by passing a prefab.
+            // if the scroller finds one it can recycle it will do so, otherwise
+            // it will create a new cell.
             CellView cellView = scroller.GetCellView(cellViewPrefab) as CellView;
 
-            // tell the cell view to calculate its layout on the first pass,
-            // otherwise just use the size set in the data.
+            // set the name of the game object to the cell's data index.
+            // this is optional, but it helps up debug the objects in 
+            // the scene hierarchy.
+            cellView.name = "Cell " + dataIndex.ToString();
             cellView.SetData(_data[dataIndex], _calculateLayout);
 
+            // return the cell to the scroller
             return cellView;
         }
+        
+        /// <summary>
+        /// This is called when the scroller fires a scrolled event
+        /// </summary>
+        /// <param name="scroller">the scroller that fired the event</param>
+        /// <param name="val">scroll amount</param>
+        /// <param name="scrollPosition">new scroll position</param>
+        private void ScrollerScrolled(EnhancedScroller scroller, Vector2 val, float scrollPosition)
+        {
+            if (_calculateLayout)
+            {
+                Debug.Log("_calculateLayout");
+                return;
+            }
 
+            var pos = 0f;
+            if (_data.Count > 0)
+            {
+                pos = 1.0f / _data.Count;
+            }
+            if (scroller.NormalizedScrollPosition <= pos && !_loadingNew)
+            {
+                _loadingNew = true;
+                StartCoroutine(FakeDelay());
+            }
+        }
+
+        /// <summary>
+        /// This is a method to fake a real world delay in gathering data.
+        /// This should not be used in your application
+        /// </summary>
+        /// <returns>The delay</returns>
+        IEnumerator FakeDelay()
+        {
+            // wait for one second
+            yield return new WaitForSeconds(1f);
+
+            // load the data
+            LoadData(_data.Count);
+        }
 
         #endregion
     }
