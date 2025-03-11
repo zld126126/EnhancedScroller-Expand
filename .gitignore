@@ -1,0 +1,85 @@
+# =============== #
+# Unity Generated #
+# =============== #
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# Visual Studio / Rider
+.vs/
+*.sln
+*.csproj
+*.pidb
+*.suo
+*.user
+*.unityproj
+*.booproj
+*.svd
+
+# MonoDevelop
+*.pidb
+*.userprefs
+*.unityproj
+
+# Rider
+.idea/
+*.iml
+
+# =============== #
+# OS Generated    #
+# =============== #
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+*.Spotlight-V100
+*.Trashes
+
+# =============== #
+# Unity Asset Meta#
+# =============== #
+# 备份的元数据文件
+*.meta~
+
+# =============== #
+# Logs and Crash Reports #
+# =============== #
+*.log
+*.log.*
+crash-reports/
+error.log
+Player.log
+Editor.log
+
+# =============== #
+# Unity Packages  #
+# =============== #
+Packages/
+*.unitypackage
+
+# =============== #
+# Plugin Specific #
+# =============== #
+
+# JetBrains Rider
+.idea/
+*.dotSettings
+*.dotSettings.user
+
+# VS Code
+.vscode/
+
+# Mac
+._*
+
+# Xcode
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.xcworkspace/
